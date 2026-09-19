@@ -1,0 +1,39 @@
+diff --git a/exllamav3/modules/attention_fn/dispatch.py b/exllamav3/modules/attention_fn/dispatch.py
+--- a/exllamav3/modules/attention_fn/dispatch.py
++++ b/exllamav3/modules/attention_fn/dispatch.py
+@@ -1,3 +1,4 @@
++import os
+ import torch
+ from ...cache import CacheLayer, Cache, CacheLayer_quant
+ from .common import AttnArgs, AttnFn
+@@ -38,6 +39,7 @@
+ # EXL3_QC_STAGING level, see triton_paged); level 2 restores the dequantize-then-attend path
+ # with full-size fp16 temporaries for A/B testing
+ _qc_attn = _qc_staging < 2
++_qc_strict = os.environ.get("EXL3_QC_STRICT", "0") == "1"
+ 
+ attn_fns: list[AttnFn] = _fns_triton_fast + [
+     fn_triton_attn_nocache,
+@@ -116,14 +118,20 @@
+         assert block_table is not None
+         assert cache_seqlens is not None
+         layer = cache if isinstance(cache, CacheLayer) else cache.layers[cache_idx, cache_instance or 0]
+-        if (
++        quant_direct_eligible = (
+             _qc_attn and
+             isinstance(layer, CacheLayer_quant) and
+             layer.compand_a == 0.0 and
+             q.dtype == torch.float16 and
+             dim <= 512 and dim % 32 == 0 and   # packed groups of 32; non-pow2 dims run zero-padded
+             cu_seqlens is None
+-        ):
++        )
++        if _qc_strict and isinstance(layer, CacheLayer_quant) and not quant_direct_eligible:
++            raise RuntimeError(
++                "EXL3_QC_STRICT: quantized attention would allocate full-cache FP16 K/V; "
++                "check staging, compand_a, query dtype/head dimension and varlen arguments"
++            )
++        if quant_direct_eligible:
+             layer.update_kv_direct(cache_seqlens, block_table, k, v, q_len)
+             q_cache = layer.get_qkv()
+             k_cache, v_cache = None, None

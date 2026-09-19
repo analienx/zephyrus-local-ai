@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "name": "qwen38-27b-exl3-3bpw-text-mtp-static-candidate",
+  "checkpoint": {
+    "repo": "turboderp/Qwen3.8-27B-exl3",
+    "revision": "004a887127d8304ca2d5475d3a3c41f1761fdd27",
+    "variant": "SC_3.00bpw_H4_V4",
+    "config_sha256": "d71f9f2cdd6638987601e1aaca1d89916733c442ff8dec23daffeac03bdeb6a8",
+    "manifest_sha256": "2efb3c93ed78a02a39753e978595e81fe00980601ca0aebe7705474e86ec673d"
+  },
+  "runtime": {
+    "repo": "turboderp-org/exllamav3",
+    "revision": "02aef45cd681b960a00afcd0749a4ab99e6c1bfe",
+    "patch_sha256": "b997a2fc58a1b4ede1726fcb66e3c4284125d829ec7c1ac68bf736191bc1dc7c",
+    "strict_quant_cache": true,
+    "qc_staging": 0,
+    "bc_attention": true
+  },
+  "components": {"text": true, "mtp": true, "vision": false},
+  "cache": {
+    "layer_type": "CacheLayer_quant",
+    "k_bits": 6,
+    "v_bits": 5,
+    "compand_a": 0.0,
+    "context_tokens": 32768,
+    "history": 4,
+    "slots": 1
+  },
+  "attention_contract": {
+    "query_dtype": "torch.float16",
+    "head_dim": 256,
+    "varlen": false,
+    "requires_quant_direct": true
+  },
+  "memory": {"nominal_gpu_mib": 16303, "static_unbudgeted_floor_mib": 2048},
+  "validation_state": "static-candidate-only-no-model-load-or-GPU-test"
+}
