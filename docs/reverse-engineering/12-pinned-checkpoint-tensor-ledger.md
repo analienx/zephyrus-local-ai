@@ -36,6 +36,8 @@ Pinned native ExLlamaV3: [`Model.from_config`](https://github.com/turboderp-org/
 
 Text+head+MTP serialized tensors = **11,946.29 MiB**. Vision is optional for the proposed text/coding lane, but costs at least its **434.32 MiB serialized payload** plus unknown processor/activation workspaces when enabled. Do not infer that skipping vision is valid for an image request, or that it can be switched on during a running text-only session without extra allocation and model loading.
 
+**Native-loader correction (later source audit):** The table below is a deliberately conservative *serialized-all-weights-on-GPU* scenario, **not** the native ExLlamaV3 residency path. The native text embedding is CPU-preferred, removing 2,425 MiB from GPU weight inputs. For the corrected 16-GB candidate screen, peak-scratch separation, and actual load behavior see [13 — native allocation lifecycle](13-native-loader-allocation-lifecycle.md) and [`tools/native_loader_ledger.py`](../../tools/native_loader_ledger.py). The older 32K provisional choice below is superseded as a capacity conclusion; the production context remains undecided until source-correct implementation and final hardware validation.
+
 ## Paper capacity check — do not treat positive remainder as 'fits'
 
 For `text+output_head+mtp`, one native recurrent slot, MTP-4 state history, and 6/5-bit compressed K/V, [the static planner](../../tools/model_residency_plan.py) combines **serialized bytes** with code-derived native cache tensor allocations. Against **16,303 MiB physical GPU memory** previously read from the Zephyrus (not currently free VRAM):

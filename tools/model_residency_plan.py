@@ -64,6 +64,7 @@ def main():
         ap.error('Nominal VRAM must be positive')
     config = json.loads(args.config.read_text(encoding='utf-8'))
     components, count = read_manifest(args.manifest)
+    print('LEGACY CONSERVATIVE SCREEN: treats CPU-preferred embedding as GPU-resident. Use tools.native_loader_ledger for native ExLlamaV3.')
     print('INVENTORY', count, 'tensor payloads; physical VRAM is NOT a residency certificate')
     print('COMPONENTS', ' '.join(f'{k}={components[k]/MIB:.2f}MiB' for k in sorted(components)))
     for context in args.contexts:

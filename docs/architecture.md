@@ -42,27 +42,27 @@ Use workload profiles rather than one magical universal quant: `quality` (larges
 
 ### Gate 0 — sanitized hardware inventory
 
-Record GPU name/PCI ID/compute capability, total/free VRAM, actual power limit and mode, sustained clocks and temperature, driver/CUDA toolkit, CPU/RAM and memory bandwidth, Windows/WSL/native Linux version, engine version, filesystem/cache placement and other GPU consumers. Check driver-visible CUDA in WSL independently. A restart or AC power mode difference invalidates an otherwise paired A/B. Save only non-identifying summaries in Git; local full inventory stays ignored.
+Record GPU name/PCI ID/compute capability, total/free VRAM, declared power limit and mode, idle clocks and temperature (sustained values are final-stage measurements), driver/CUDA toolkit, CPU/RAM and memory bandwidth, Windows/WSL/native Linux version, engine version, filesystem/cache placement and other GPU consumers. Check driver-visible CUDA in WSL independently. A restart or AC power mode difference invalidates an otherwise paired A/B. Save only non-identifying summaries in Git; local full inventory stays ignored.
 
 ### Gate 1 — immutable model and engine controls
 
 Pin exact source commits, CUDA/PyTorch version, model revision and SHA-256, quant calibration data, MTP-head type, tokenizer, sampler defaults, chat template, tool-call adapter, context, memory cache and output length. Compare the same model at multiple quantizations; compare other models on the **same tasks** without claiming byte-identical text. Confirm legal redistribution/licensing before public code inclusion.
 
-### Gate 2 — capacity and quality frontier
+### Gate 2 — static, source-derived capacity and quality fixture design (no GPU execution)
 
-At 8/16/32/64/100K active tokens as feasible, compare native 3.0 bpw EXL3 + 6/5 KV + k=2 MTP, 3.5 bpw where it fits, low-bit GGUF + supported MTP, and a 2.0–2.5-bpw candidate only if quality passes. Include no-spec controls, prompt processing, time-to-first-token, decode, warm/cold starts, grammar/tool use, structured data, long-context recall, coding correctness and actual VRAM peak. Include a 20–30 minute plugged-in sustained test to detect thermal throttling. Make a decision based on task success **and** speed at the user's active context, not a desktop 512-output-token headline.
+Reconcile checkpoint headers, tensor precision and true per-component residency; trace native loader, transient tensors, recurrent state and compressed cache. Use the [native loader ledger](../tools/native_loader_ledger.py) for paper screening only. Prepare reproducible coding-agent, long-context, structured-output and quality fixtures and decide which outputs and numerical invariants will count as valid. Do not run a model, GPU kernels, synthetic autosplit forwards, any speed sweeps or inference benchmarks here.
 
-### Gate 3 — profiler-driven micro-optimization
+### Gate 3 — select the smallest implementation boundary from source evidence
 
-Extract GPU kernel breakdown using Nsight Systems/Compute or an equivalent compatible profiler; classify target matvec, quant-unpack, target/draft attention, GDN, sampled verifier, host/sync, graphs and cache transfer. Profile verification widths separately and record achieved memory bandwidth, occupancy, register/spill and shared-memory pressure. Check source-path selection: the fast kernel may be compiled but never called. Pick exactly one largest measurable cost; compare an upstream implementation or launch tuning before writing custom CUDA.
+Pin upstream and checkpoint versions, trace real kernel and attention dispatch, math transforms, GDN rollback, graph pointers and the target/draft weight-sharing lifecycle. Choose one reversible implementation patch *only if* source evidence identifies a missing or incorrect path that cannot be handled by supported upstream functionality. Never assume SM86 launch settings improve SM120. Performance ranking or profiler-driven claims are deferred to final validation.
 
-### Gate 4 — isolated implementation and correctness
+### Gate 4 — implement and establish pre-GPU correctness
 
-Small branch per hypothesis, opt-in flag + kill switch + architecture check, deterministic short test and full workflow gates. For changes to numerical kernels use fixed-token logit deltas, perplexity/KL, greedy token comparison, sanitizer and tool-task accuracy; for speculation use exact p/q distributional equivalence at sampled temperatures, grammar/penalty fallback and recurrent rollback canaries. For model quantization use task metrics against high-precision references; never describe it as lossless. Reject or revert if quality or sustained thermal stability degrades despite higher tok/s.
+Implement the thin localhost serving/profile interface, metadata-only preflight, explicit flags and safe fallback, plus small upstream-compatible patches as justified by the source audit. Run CPU-only arithmetic/header/schema/state-machine checks, static code review and mockable integration tests. GPU parity and full model quality tests are **not** part of this gate; they are eventual blockers for publication, not permission to benchmark early.
 
-### Gate 5 — local product and publication
+### Gate 5 — final authorized GPU validation, then local product and publication
 
-Ship one selected server profile with a reproducible launcher, startup GPU/free-VRAM preflight, local health endpoint, safe shutdown, model SHA checks, structured opt-in performance logs and test manifests. Portable examples for Windows/WSL/Linux follow after a verified local path. Publish plots/results only with real provenance (machine, source SHAs, weights, exact flags, context, prompt, sampler, output and confidence intervals). No unattended GPU benchmark or auto-merge from generic cloud CI.
+Only after the static audit and implementation pass: load the model with consent, validate numerical parity, recurrent rollback, full-context quality and native loader dispatch. Then run paired inference/profiler benchmarks on the Zephyrus, log physical free/allocated/reserved/peak VRAM at every loading and inference stage, and check sustained laptop thermals. Reject incorrect or unstable profiles before promoting any speed claim. Ship one selected server profile with a reproducible launcher, startup GPU/free-VRAM preflight, local health endpoint, safe shutdown, model SHA checks, structured opt-in performance logs and test manifests. Portable examples for Windows/WSL/Linux follow after a verified local path. Publish plots/results only with real provenance (machine, source SHAs, weights, exact flags, context, prompt, sampler, output and confidence intervals). No unattended GPU benchmark or auto-merge from generic cloud CI.
 
 ## Repository topology after the research gates
 

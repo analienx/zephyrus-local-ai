@@ -26,7 +26,9 @@
 - Trace shared output head, draft cache, model tensor precision, GDN buffers, paged KV reservation, graph and reconstructed weight scratch without assuming a selected `bpw` implies resident bytes.
 - Do not count the native repository's **sm_120 offline quantizer** kernel optimization as a decode tok/s improvement. Any new CUDA kernel must beat a correct existing runtime under exact, attribution-safe, effective-dispatch controlled conditions on appropriate hardware.
 
-## Additional source audit: native quantized KV dispatch
+## Additional source audits and executable ledgers
+
+7. [Open source-parity and safety questions](07-source-audit-open-questions.md) — explicit unresolved correctness and source-dispatch tests, separated from proven work.
 
 8. [Native compressed-KV dispatch and bounded prefill staging](08-native-quant-cache-dispatch.md) — precise Qwen fast-path eligibility, distinct decode/prefill kernels, Hadamard-rotated packing, `EXL3_QC_STAGING` allocation trade-off, fail-closed fallback and no-benchmark implementation constraints. This is a pinned-source trace, **not** a Zephyrus performance claim.
 
@@ -35,3 +37,5 @@
 11. [Static memory-allocation ledger and CPU-only calculator](11-static-allocation-ledger.md) — source-derived page-rounded KV, MTP and recurrent allocations validated against the official Qwen3.8 configuration without loading a model or running a GPU benchmark.
 
 12. [Pinned checkpoint tensor ledger](12-pinned-checkpoint-tensor-ledger.md) — reconciled all 3,080 public safetensors-header entries, actual mixed bitrates, optional vision/MTP costs and 16 GiB static budgets. [Header-only verifier](../../tools/safetensors_header_audit.py), [full per-tensor CSV](../../data/qwen38-27b-exl3-3bpw-tensor-inventory.csv), [residency planner](../../tools/model_residency_plan.py). NO WEIGHTS DOWNLOADED, NO MODEL LOADS OR GPU BENCHMARKS.
+
+13. [Native loader allocation lifecycle and corrected capacity screen](13-native-loader-allocation-lifecycle.md) — CPU-resident text embedding, MTP weight aliases, deferred-loader copies and slabs, synthetic GPU forwards in autosplit, compressed-cache FP16 fallback, staged-prefill scratch and reconstructed EXL3 weight slices. The [native loader ledger](../../tools/native_loader_ledger.py) replaces the all-serialized-weights-on-GPU screen with a **source-classified but still unmeasured** candidate profile. GPU model loading and performance benchmarking remain deferred to the final validation stage.
