@@ -1,0 +1,26 @@
+# Source-level reverse-engineering index
+
+**Static audit snapshot 2026-09-19.** The original X article is not directly retrievable here, so primary references are the author's published article/runbook, pinned source and later fixes. Upstream source observations, author-measured numbers, mathematical deductions, numerical tests in *this* repository and local Zephyrus measurements are different evidence classes. **No Zephyrus GPU run has been completed; no Blackwell CUDA improvement is implemented or proven.**
+
+1. [Reference decode path](01-reference-decode-path.md) — round-level cost, draft head, q distribution, attention dispatch, CUDA graphs and negative results in the original article.
+2. [EXL3 format and 16 GiB memory](02-exl3-and-memory.md) — exact trellis/codebook/Hadamard semantics, tensor/fallback correctness, quantized GEMV, f16 reconstruction and layer-by-layer KV accounting.
+3. [Actual target verifier and GDN state](03-target-verifier-and-state.md) — coupled p/q implementation, probability law, fallback eligibility and September 18 recurrent-state repair.
+4. [Native ExLlamaV3 comparative audit](04-native-exllamav3-comparison.md) — actual head sharing, **argmax + ID-match rather than Jake's sampled q and p/q**, 6/5 KV packing and independent recurrent rollback implementation.
+5. [Native vs GGUF EXL3 prefill dispatch](05-exl3-prefill-kernel-dispatch.md) — native direct GEMM up to 144 activation rows vs GGUF reconstruction for widths above 16, graph/autotune structure, and separately handled large-matmul reconstruction.
+
+## Decisions enabled without touching the laptop
+
+**Weight and cache:** 3.0-bpw is a provisional *mixed-precision* reference, not an instruction to lower all weights to 3 bits. Author-measured 3-bpw v0.3.1 GGUF EXL3 uses 10.91 GiB file, ~14,403 MiB whole-card peak on one MTP4 short-context fixture and ~15,688 MiB after a 65.5K-token prompt plus continuation on a 3090 Ti. That 65.5K result is not a promise for a Windows 16 GiB laptop. Native 6/5 K/V with one comparable draft attention layer has modeled 26,112 B/token from actual array shapes, almost identical to author's 25,984 B/token q8-K/turbo3-V/draft; **switching to native 6/5 by itself will not magically increase max context**. Context budget still depends on resident model/desktop, page padding, actual reserved slots, recurrent state and transient matmul workspace.
+
+**MTP:** native ExLlamaV3's Qwen family draft head aliases the *target* head; a separately replicated output head is not intrinsic. It proposes argmax while Jake's p/q path can propose sampled q, accept beyond an ID match and sample target-minus-q residual on rejection. Compare engine speed at equal token-generation distribution/prompt/active context, record effective verification algorithm, and separate accepted tokens/round from time/round. The upstream q lookup has O(|p|×|q|) worst-case source structure, but Jake's published `top-k 20` path usually makes q a small candidate list; this is **not** a demonstrated major bottleneck.
+
+**Prefill:** the most concrete, still-unimplemented optimization in Jake's GGUF EXL3 branch is direct quantized GEMM for activation width 17–144, already represented by native ExLlamaV3's cooperative GEMM and autotuner. For >144 native also reconstructs by default, with better chunking/transform fusion at some widths. Do not propose a new 16-GB full-weight FP16 cache; memory budget makes per-layer 2-byte reconstructed weights an ephemeral workspace at best.
+
+**Correctness:** any port must preserve original EXL3 scale/Hadamard transforms, target full-vocabulary distribution, optional draft shortlist token remapping and valid committed recurrent state; generic GGUF backend fallback that silently drops the two side transform tensors is unacceptable. The public CPU [speculative-math test suite](../../tests/test_spec_math.py) checks a reference probability identity and passed [GitHub Actions](https://github.com/analienx/zephyrus-local-ai/actions/runs/35426542090), but is not a test of source runtime behavior or CUDA parity.
+
+## Unresolved static audit — research before implementation
+
+- Pin and diff full relevant upstream revisions and inspect native EXL3 tile/MMQ kernel architecture dispatch, native cache compressed-attention *actual* dispatch and Qwen3.8-specific module registration/conversion. Inspect quantizer-only SM120 tuning separately: faster offline weight quantization does **not** imply faster inference.
+- Audit all target sampler parameter combinations and effective p/q fallback modes with a token-level C++ reference, then add robust constrained decoding/grammar/rejection tests and recurrent-state rollback/rewind correctness fixtures.
+- Trace exact memory sharing in native and GGUF model loaders, including output-head alias, draft cache, GDN recurrent buffers, output token logits, page/graph reservations and transient EXL3 reconstruction workspace.
+- Establish compatible sample/prefill/quality fixtures, immutable source/model provenance, plugin/API architecture and actionable kernel-specific hypotheses **before** accepting a claimed laptop speedup. Only a real SM120 laptop run can settle runtime throughput and sustained thermal behavior.
