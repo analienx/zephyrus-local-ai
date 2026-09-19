@@ -123,10 +123,12 @@ def validate_trial(trial: dict, cases: dict, suite_hash: str) -> tuple[str, int]
             'Missing required timing/token telemetry')
     for key in REQUIRED_METRIC:
         val = metrics[key]
+        if cases[trial['case_id']]['kind'] == 'repo_task' and key in ('ttft_ms', 'decode_ms') and val is None:
+            continue  # non-streaming multi-turn agent has no observed first-token/decode interval
         require(type(val) in (int, float) and math.isfinite(val) and val >= 0,
                 'Invalid metric ' + key)
-    require(metrics['e2e_ms'] >= metrics['ttft_ms'] and
-            metrics['e2e_ms'] >= metrics['decode_ms'], 'Inconsistent time spans')
+    require(all(metrics['e2e_ms'] >= metrics[key] for key in ('ttft_ms', 'decode_ms')
+                if metrics[key] is not None), 'Inconsistent time spans')
     require(type(metrics['output_tokens']) is int, 'Token count must be integer')
     if trial['provenance'] == 'measured':
         require(isinstance(trial.get('receipt'), dict) and
@@ -148,6 +150,8 @@ def evaluate(suite: dict, trials: list[dict]) -> dict:
         observed.add(identity)
         status, why = judge(cases[trial['case_id']], trial['response'], trial.get('code_receipt'),
                             trial.get('repo_receipt'))
+        if cases[trial['case_id']]['kind'] == 'repo_task' and trial.get('agent_failed') is True:
+            status, why = 'fail', 'Agent failed to complete the bounded tool session'
         output.append({'arm': trial['arm'], 'case_id': key[0], 'repeat': key[1],
                        'critical': cases[key[0]]['critical'], 'status': status,
                        'reason': why, 'provenance': trial['provenance'],
@@ -193,7 +197,9 @@ def compare(report: dict, suite: dict, arm_a: str, arm_b: str,
     summaries = {}
     for arm in (arm_a, arm_b):
         rows = list(arms[arm].values())
-        total_decode = sum(r['metrics']['decode_ms'] for r in rows)
+        decode_known = all(r['metrics']['decode_ms'] is not None for r in rows)
+        total_decode = sum(r['metrics']['decode_ms'] for r in rows) if decode_known else 0
+        ttfts = [r['metrics']['ttft_ms'] for r in rows if r['metrics']['ttft_ms'] is not None]
         gpu_peaks = [r['gpu_telemetry'].get('peak_used_mib') for r in rows
                      if r['gpu_telemetry'].get('collected') and r['gpu_telemetry'].get('peak_used_mib') is not None]
         temp_peaks = [r['gpu_telemetry'].get('peak_temperature_c') for r in rows
@@ -205,11 +211,12 @@ def compare(report: dict, suite: dict, arm_a: str, arm_b: str,
             'quality_fail': sum(r['status']=='fail' for r in rows),
             'quality_unverified': sum(r['status']=='unverified' for r in rows),
             'median_e2e_ms': statistics.median(r['metrics']['e2e_ms'] for r in rows),
-            'median_ttft_ms': statistics.median(r['metrics']['ttft_ms'] for r in rows),
+            'median_ttft_ms': statistics.median(ttfts) if len(ttfts) == len(rows) else None,
             'client_observed_decode_tokens_per_second': (
                 round(1000*sum(r['metrics']['output_tokens'] for r in rows)/total_decode, 3)
                 if total_decode > 0 else None),
-            'token_rate_warning': 'Client-observed streaming decode time; not GPU compute throughput',
+            'token_rate_warning': ('Client-observed streaming decode time; not GPU compute throughput'
+                                   if decode_known else 'Multi-turn agent has no observed intertoken decode interval'),
         }
     return {'arms': [arm_a, arm_b], 'changed_controls': sorted(differences),
             'arm_summaries': summaries,

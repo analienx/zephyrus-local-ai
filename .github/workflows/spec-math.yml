@@ -28,6 +28,8 @@ on:
       - 'tests/test_agent*.py'
       - 'tests/test_config_agent_task.py'
       - 'tests/test_repo*.py'
+      - 'bench/**'
+      - 'tests/**'
       - '.github/workflows/spec-math.yml'
   pull_request:
     paths:
@@ -56,6 +58,8 @@ on:
       - 'tests/test_agent*.py'
       - 'tests/test_config_agent_task.py'
       - 'tests/test_repo*.py'
+      - 'bench/**'
+      - 'tests/**'
       - '.github/workflows/spec-math.yml'
 permissions:
   contents: read

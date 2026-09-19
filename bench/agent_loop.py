@@ -42,7 +42,7 @@ def run_session(task_root: Path, transport, private_root: Path, *,
     private_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=private_root, prefix='agent-session-') as temporary:
         working = Path(temporary) / 'workspace'
-        shutil.copytree(template, working)
+        shutil.copytree(template, working, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         instructions = (working / task['prompt_file']).read_text(encoding='utf-8')
         messages = [{'role':'system', 'content':'Use only the five bounded local tools. '
                      'A replay test response is not proof of correctness. Never access private grading files.'},
@@ -57,6 +57,8 @@ def run_session(task_root: Path, transport, private_root: Path, *,
             require(isinstance(call, dict) and set(call) == {'tool','arguments'},
                     'Unexpected model tool-call shape')
             require(call['tool'] in TOOLS, 'Unsupported agent tool')
+            if call['tool'] == 'run_tests':
+                require(bool(writes), 'Tests must follow an actual source edit')
             result = tool_step(task, working, inspected, call)
             if call['tool'] == 'run_tests' and visible_runner is not None:
                 result = visible_runner(task_root, working)
@@ -65,6 +67,7 @@ def run_session(task_root: Path, transport, private_root: Path, *,
             tool_names.append(call['tool'])
             if call['tool'] == 'write_file':
                 writes.add(call['arguments']['path'])
+                tested = False  # any later edit invalidates the previous test result
             if call['tool'] == 'run_tests':
                 tested = True
             result_hashes.append(hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest())
@@ -84,7 +87,7 @@ def run_session(task_root: Path, transport, private_root: Path, *,
                 'provenance':'simulated' if isinstance(transport, ScriptedTransport) else 'unverified',
                 'tool_names':tool_names, 'source_hashes':{n:digest(working/n) for n in changed},
                 'private_tests_exposed':False,
-                'generated_code_executed':False if visible_runner is None and final_grader is None else None,
+                'generated_code_executed':False if visible_runner is None and final_grader is None else True,
                 'model_or_gpu_contacted':False if isinstance(transport, ScriptedTransport) else None,
                 'repo_receipt':final_receipt,
                 'reason':'Scripted transport validates end-to-end multi-turn tool I/O only.'}

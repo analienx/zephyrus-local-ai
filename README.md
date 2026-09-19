@@ -66,3 +66,5 @@ The [pinned loader allocation audit](docs/reverse-engineering/13-native-loader-a
 ## Executable coding-agent fitness fixtures (CPU-only preparation)
 
 Two disposable repository-edit tasks with visible and evaluator-owned tests, bounded multi-turn tool-session rehearsal and an isolated final-stage grader now live in [the benchmark harness](bench/README.md). Both intentionally broken starters pass their visible tests but fail evaluator-owned regression tests; trusted reference implementations pass both, establishing that the suite can discriminate behavior. No candidate model has been run or ranked. A live OpenAI tool-transport/agent collector is still an implementation gate, not a claimed capability.
+
+**Agent evaluation:** [disposable repo-edit tasks, OpenAI tool adapter and guarded grading](bench/agent_live_README.md) now produce multi-turn whole-task fitness records. Offline HTTP mock tests do not invoke any model or GPU; no actual speed or quality result is claimed.

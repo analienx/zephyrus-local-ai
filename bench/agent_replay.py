@@ -113,7 +113,7 @@ def replay(task_root: Path, transcript: list[dict], private_root: Path) -> dict:
     private_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=private_root, prefix='agent-') as temporary:
         working = Path(temporary) / 'workspace'
-        shutil.copytree(template, working, symlinks=False)
+        shutil.copytree(template, working, symlinks=False, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         seen, trace, writes, tested, ended = set(), [], set(), False, False
         for index, step in enumerate(transcript):
             require(not ended, 'Tool call after finish')

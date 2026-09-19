@@ -28,8 +28,8 @@ def stage_candidate(task_root: Path, candidate: Path, scratch: Path) -> dict:
     candidate = candidate.resolve()
     require(candidate.is_dir() and candidate != template.resolve(), 'Candidate must be a separate workspace')
     inspect_workspace(candidate)
-    initial = {p.relative_to(template).as_posix(): digest(p) for p in template.rglob('*') if p.is_file()}
-    submitted = {p.relative_to(candidate).as_posix(): digest(p) for p in candidate.rglob('*') if p.is_file()}
+    initial = {p.relative_to(template).as_posix(): digest(p) for p in template.rglob('*') if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+    submitted = {p.relative_to(candidate).as_posix(): digest(p) for p in candidate.rglob('*') if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
     require(initial.keys() == submitted.keys(), 'Candidate added or removed an unapproved file')
     changed = {name for name in initial if submitted[name] != initial[name]}
     require(bool(changed) and changed <= set(task['writable_files']),
@@ -38,7 +38,7 @@ def stage_candidate(task_root: Path, candidate: Path, scratch: Path) -> dict:
         require((candidate / name).stat().st_size <= task['max_source_bytes'],
                 'Changed source exceeds bound')
     workspace = scratch / 'workspace'
-    shutil.copytree(candidate, workspace)
+    shutil.copytree(candidate, workspace, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     grader = scratch / 'grader'
     grader.mkdir()
     protected = task_root / task['private_test']
@@ -95,3 +95,51 @@ def grade(task_root: Path, candidate: Path, *, image: str,
                     container_image=image, exit_code=process.returncode,
                     verification_provenance='isolated-container',
                     reason='Isolated public and evaluator-owned tests; no host code execution')
+
+
+def grade_visible(task_root: Path, candidate: Path, *, image: str,
+                  private_root: Path, authorized: bool = False,
+                  timeout_seconds: int = 45) -> dict:
+    """Run only public tests in a separate container; return no test source/logs.
+
+    This is NOT the evaluator-owned private acceptance test or a sandbox for hostile code.
+    """
+    if not authorized:
+        raise RepoJudgeError('Visible generated-code execution needs explicit authorization')
+    if not image_is_pinned(image) or not 1 <= timeout_seconds <= 300:
+        raise RepoJudgeError('Pinned locally cached image and bounded timeout required')
+    private_root = private_root.resolve()
+    if '.local' not in private_root.parts:
+        raise RepoJudgeError('Grader scratch must reside in ignored .local')
+    task, template = load_task(task_root.resolve())
+    candidate = candidate.resolve()
+    inspect_workspace(candidate)
+    required = {p.relative_to(template).as_posix(): digest(p)
+                for p in template.rglob('*') if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+    actual = {p.relative_to(candidate).as_posix(): digest(p)
+              for p in candidate.rglob('*') if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+    changed = {n for n in required if required[n] != actual.get(n)}
+    require(required.keys() == actual.keys() and changed <= set(task['writable_files']),
+            'Visible grader received an altered protected file')
+    private_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=private_root, prefix='visible-only-') as temp:
+        work = Path(temp) / 'workspace'
+        shutil.copytree(candidate, work, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        cmd = ['docker', 'run', '--rm', '--pull=never', '--network=none',
+               '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges',
+               '--pids-limit=64', '--memory=512m', '--cpus=2', '--user=65534:65534',
+               '--tmpfs=/tmp:rw,nosuid,noexec,size=32m',
+               '--mount', f'type=bind,source={work.resolve()},destination=/app,readonly',
+               '--workdir=/app', '--env=PYTHONDONTWRITEBYTECODE=1', image,
+               'python', '-B', '-m', 'unittest', 'discover', '-s', 'tests',
+               '-p', 'test_public.py', '-q']
+        try:
+            process = subprocess.run(cmd, capture_output=True, text=True,
+                                     timeout=timeout_seconds, check=False)
+        except subprocess.TimeoutExpired:
+            return {'status': 'failed', 'tests_ran': 0, 'reason': 'Visible tests timed out'}
+        counts = re.findall(r'Ran (\d+) tests?', process.stdout + '\n' + process.stderr)
+        ran = int(counts[-1]) if len(counts) == 1 else 0
+        passed = process.returncode == 0 and ran >= 2
+        return {'status': 'passed' if passed else 'failed', 'tests_ran': ran,
+                'reason': 'Public tests ran in isolated container; hidden acceptance remains unverified'}

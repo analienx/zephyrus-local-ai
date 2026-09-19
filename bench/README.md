@@ -60,3 +60,10 @@ results only with matching evaluator-owned public/private test receipts; model
 claims or a fast but untested edit remain `unverified`. The existing one-shot
 collector explicitly rejects repository tasks in live mode; no misleading
 one-turn result is passed off as completed agent work.
+
+## Multi-turn repository agent (offline-ready)
+
+[OpenAI-compatible adapter and separated public/private grading](agent_live_README.md)
+connect both registered repo-edit tasks to the existing fitness ledger.
+The scripted loopback HTTP integration is tested with no model and no GPU.
+The real endpoint remains a separately gated final-stage operation.
