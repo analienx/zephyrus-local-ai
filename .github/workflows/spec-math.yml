@@ -1,20 +1,24 @@
-name: Speculative decoding math
+name: CPU-only research correctness
 on:
   workflow_dispatch:
   push:
     paths:
       - 'tools/spec_math.py'
+      - 'tools/static_memory_budget.py'
       - 'tests/test_spec_math.py'
+      - 'tests/test_static_memory_budget.py'
       - '.github/workflows/spec-math.yml'
   pull_request:
     paths:
       - 'tools/spec_math.py'
+      - 'tools/static_memory_budget.py'
       - 'tests/test_spec_math.py'
+      - 'tests/test_static_memory_budget.py'
       - '.github/workflows/spec-math.yml'
 permissions:
   contents: read
 jobs:
-  math:
+  cpu-correctness:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
