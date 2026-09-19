@@ -44,3 +44,9 @@ Finish exact GPU kernel/attention fallback, target sampler and Qwen3.8-specific 
 ## Attribution
 
 [Original research: JakeATX/llamAmpere](https://github.com/JakeATX/llamAmpere) · [Model: Qwen/Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) · [Reference engine: ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) · [EXL3 format and native engine: turboderp-org/exllamav3](https://github.com/turboderp-org/exllamav3). Preserve all applicable license texts for any incorporated implementation; no affiliation or ownership of upstream work is implied.
+
+## September 19 source-audit update (no benchmarks)
+
+The Zephyrus is online, with RTX 5080 Laptop compute capability 12.0 and reported 16,303 MiB GPU memory. Upstream source mirrors are pinned separately from this repository. The revised [reverse-engineering index](docs/reverse-engineering/README.md) now includes actual GDN allocation/replay analysis, Blackwell 3-bpw kernel dispatch, and an [executable source-derived static memory model](tools/static_memory_budget.py) with [CPU-only tests](tests/test_static_memory_budget.py). The static model uses the *official Qwen3.8 geometry*, not inferred generic defaults; it is deliberately not a VRAM-fit certificate.
+
+**Project execution boundary:** source inspection, design, safe offline analysis and CPU-only correctness tests are permitted; **do not launch models, run GPU kernels, inference benchmarks or performance sweeps on the Zephyrus until the implementation and research phases are finished**. The measured-performance phase is last, per owner instruction. Public GitHub-hosted CPU checks do not replace the final Zephyrus validation.

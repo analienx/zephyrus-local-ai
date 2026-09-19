@@ -32,3 +32,4 @@
 
 9. [Actual Qwen3.8 recurrent-state allocation and optional ingredient replay](09-qwen38-recurrent-memory-and-replay.md) — official 48-value-head geometry, exact native FP32 snapshot/conv memory, speculative depth and safe replay-state transaction.
 10. [Blackwell EXL3 direct kernel dispatch](10-blackwell-exl3-kernel-dispatch.md) — native 3-bpw small-m GEMV eligibility, conditional SM120 shape envelope, general GEMM fallback and reconstructed-prefill scratch.
+11. [Static memory-allocation ledger and CPU-only calculator](11-static-allocation-ledger.md) — source-derived page-rounded KV, MTP and recurrent allocations validated against the official Qwen3.8 configuration without loading a model or running a GPU benchmark.
