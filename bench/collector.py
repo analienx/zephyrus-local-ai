@@ -39,6 +39,8 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def build_request(case: dict, model: str, max_tokens: int) -> dict:
+    if case['kind'] == 'repo_task':
+        raise CollectorError('Repository task needs a multi-turn tool agent, not a one-shot completion')
     body = {'model': model, 'messages': [{'role': 'user', 'content': case['prompt']}],
             'temperature': 0, 'max_tokens': max_tokens, 'stream': True,
             'stream_options': {'include_usage': True}}

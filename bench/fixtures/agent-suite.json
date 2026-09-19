@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "name": "local-ai-disposable-repository-agent-v1",
+  "cases": [
+    {
+      "id": "energy-rollup-v1",
+      "kind": "repo_task",
+      "critical": true,
+      "prompt": "Repair the device-energy rollup in the disposable repository. Inspect the README and code, edit only the allowlisted source, request tests, then finish. Do not claim that tests passed unless you received a real isolated test receipt.",
+      "task_id": "energy-rollup-v1",
+      "task_root": "bench/agent_tasks/energy_rollup_v1",
+      "expected_private_sha256": "6a7193b2e83c115011016a575f159a8e6dde764e1e554e0f2c94886a8ec7ec97",
+      "expected_public_sha256": "4265fe2de441067557559140ffe04be2105da79ec05ba24b84a368a75dcb9bc",
+      "min_public_tests": 2,
+      "min_private_tests": 5,
+      "writable_files": [
+        "src/usage.py"
+      ]
+    },
+    {
+      "id": "config-merge-v1",
+      "kind": "repo_task",
+      "critical": true,
+      "prompt": "Repair recursive configuration merging in the disposable repository. Inspect task instructions and code, change only allowlisted source, request tests, then finish.",
+      "task_id": "config-merge-v1",
+      "task_root": "bench/agent_tasks/config_merge_v1",
+      "writable_files": [
+        "src/config.py"
+      ],
+      "expected_private_sha256": "01ef9adb4fcbc6c015b92473c7c73485580726dc3d028972c5952d401bbf0835",
+      "expected_public_sha256": "803625a228d3c256d9cbab471a61b1b2cedd6ebf12fd0f129f365430c7eab8e0",
+      "min_public_tests": 2,
+      "min_private_tests": 5
+    }
+  ]
+}

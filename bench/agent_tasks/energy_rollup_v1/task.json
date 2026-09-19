@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "energy-rollup-v1",
+  "root": "workspace",
+  "prompt_file": "README.md",
+  "writable_files": ["src/usage.py"],
+  "max_tool_calls": 16,
+  "max_source_bytes": 32768,
+  "visible_test": "tests/test_public.py",
+  "private_test": "grader/test_private.py",
+  "critical": true,
+  "required_inspections": ["README.md", "src/usage.py"],
+  "required_test_call": true,
+  "metric": "completed verified task / total elapsed task time",
+  "execution": "replay-only until explicit final-stage live authorization"
+}

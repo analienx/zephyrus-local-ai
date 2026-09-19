@@ -29,3 +29,34 @@ Only **after** separate final-stage permission, a reviewed patched source checko
 An **armed static preflight is not a numerical correctness or VRAM-fit certificate**. The final gate needs independently observed effective kernel dispatch, allocated/reserved process VRAM, warm/cold context, power/fan state, token accounting, true task-test execution and a sustained run. Be explicit about different engines, templates, cache quantization, or CPU offload: those are full-system comparisons, not isolated kernel wins. Compare baseline versus candidate only after the exact settings and provenance are audited.
 
 Synthetic timings in `fixtures/simulated-trials.jsonl` are intentionally arbitrary and must never be presented as laptop performance, including its output-token-rate fields.
+
+## Disposable repository-agent tasks (offline calibration)
+
+Two CPU-only fixture repositories are bundled: `agent_tasks/energy_rollup_v1` and
+`agent_tasks/config_merge_v1`. Each ships a deliberately incomplete source,
+minimal visible tests, separate evaluator-owned acceptance cases and a trusted
+reference implementation **for calibrating the evaluator only**. The agent's
+file tools expose **only** the copied `workspace/` directory, never `grader/`.
+The grader is published in this public repo, so it is not a secret from someone
+who browses the repository; future real comparisons must also use fresh private
+variants to reduce benchmark contamination and must prohibit candidate network
+access. Do not count these two cases as a comprehensive model-quality evaluation.
+
+```powershell
+python -m bench.agent_replay --task bench/agent_tasks/energy_rollup_v1 --transcript bench/fixtures/agent-replay.json
+python -m bench.collector --suite bench/fixtures/agent-suite.json
+python -m unittest discover -s tests -q
+```
+
+The first command rehearses actual list/read/write/test-request/finish tool I/O
+in an ignored disposable workspace; it deliberately replies `unverified` to
+`run_tests` and does **not** execute candidate Python. `bench.agent_loop`
+implements a multi-turn, transport-injected **scripted** session, tested without
+an inference endpoint. `bench.repo_judge` prepares an isolated read-only,
+network-disabled, pinned-image Docker test run, but refuses execution unless a
+separate final-stage caller explicitly authorizes it. Container isolation is
+not a hardened boundary for hostile code. `bench.fitness` accepts `repo_task`
+results only with matching evaluator-owned public/private test receipts; model
+claims or a fast but untested edit remain `unverified`. The existing one-shot
+collector explicitly rejects repository tasks in live mode; no misleading
+one-turn result is passed off as completed agent work.

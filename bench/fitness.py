@@ -39,7 +39,7 @@ def read_suite(path: Path) -> dict:
         require(isinstance(ident, str) and ident and ident not in ids,
                 'Missing or repeated case ID')
         ids.add(ident)
-        require(case.get('kind') in ('exact', 'json_contract', 'tool_call', 'python_syntax'),
+        require(case.get('kind') in ('exact', 'json_contract', 'tool_call', 'python_syntax', 'repo_task'),
                 f'Unsupported case kind: {ident}')
         require(isinstance(case.get('prompt'), str) and case['prompt'],
                 f'Missing test prompt: {ident}')
@@ -59,8 +59,12 @@ def matches(value: object, expected: object) -> bool:
     return type(value) is type(expected) and value == expected
 
 
-def judge(case: dict, response: str, code_receipt: dict | None = None) -> tuple[str, str]:
+def judge(case: dict, response: str, code_receipt: dict | None = None,
+          repo_receipt: dict | None = None) -> tuple[str, str]:
     try:
+        if case['kind'] == 'repo_task':
+            from bench.repo_case import judge_repo
+            return judge_repo(case, repo_receipt)
         if case['kind'] == 'exact':
             return ('pass', 'exact match') if response.strip() == case['expected'] else ('fail', 'answer mismatch')
         if case['kind'] in ('json_contract', 'tool_call'):
@@ -142,7 +146,8 @@ def evaluate(suite: dict, trials: list[dict]) -> dict:
         identity = (trial['arm'], *key)
         require(identity not in observed, 'Repeated (arm, case, repeat) record')
         observed.add(identity)
-        status, why = judge(cases[trial['case_id']], trial['response'], trial.get('code_receipt'))
+        status, why = judge(cases[trial['case_id']], trial['response'], trial.get('code_receipt'),
+                            trial.get('repo_receipt'))
         output.append({'arm': trial['arm'], 'case_id': key[0], 'repeat': key[1],
                        'critical': cases[key[0]]['critical'], 'status': status,
                        'reason': why, 'provenance': trial['provenance'],

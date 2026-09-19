@@ -24,6 +24,10 @@ on:
       - 'tests/test_native_loader_ledger.py'
       - 'tests/test_safetensors_header_audit.py'
       - 'tests/test_model_residency_plan.py'
+      - 'bench/**'
+      - 'tests/test_agent*.py'
+      - 'tests/test_config_agent_task.py'
+      - 'tests/test_repo*.py'
       - '.github/workflows/spec-math.yml'
   pull_request:
     paths:
@@ -48,6 +52,10 @@ on:
       - 'tests/test_native_loader_ledger.py'
       - 'tests/test_safetensors_header_audit.py'
       - 'tests/test_model_residency_plan.py'
+      - 'bench/**'
+      - 'tests/test_agent*.py'
+      - 'tests/test_config_agent_task.py'
+      - 'tests/test_repo*.py'
       - '.github/workflows/spec-math.yml'
 permissions:
   contents: read

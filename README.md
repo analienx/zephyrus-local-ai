@@ -62,3 +62,7 @@ The [pinned loader allocation audit](docs/reverse-engineering/13-native-loader-a
 ## First reversible runtime intervention (prepared; no model execution)
 
 [Strict packed-KV fallback guard](patches/exllamav3/0001-opt-in-strict-quantized-cache.patch) + [pinned text+MTP profile](profiles/qwen38-27b-exl3-3bpw-text-mtp.json) + [CPU-only source/metadata preflight](tools/serving_preflight.py) are ready for static review. The baseline upstream worktree remains untouched; an isolated source worktree confirms the patch applies, reverses cleanly and passes syntax compilation. The opt-in guard prevents silent FP16 full-cache expansion on the eager quantized-KV dispatcher; it neither guarantees total VRAM fit nor proves quality or speed. [Full audit and reproduction steps](docs/reverse-engineering/14-strict-quant-cache-profile.md). GPU model loading, inference and benchmarking remain prohibited until the final validation stage.
+
+## Executable coding-agent fitness fixtures (CPU-only preparation)
+
+Two disposable repository-edit tasks with visible and evaluator-owned tests, bounded multi-turn tool-session rehearsal and an isolated final-stage grader now live in [the benchmark harness](bench/README.md). Both intentionally broken starters pass their visible tests but fail evaluator-owned regression tests; trusted reference implementations pass both, establishing that the suite can discriminate behavior. No candidate model has been run or ranked. A live OpenAI tool-transport/agent collector is still an implementation gate, not a claimed capability.
