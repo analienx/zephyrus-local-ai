@@ -25,3 +25,7 @@
 - Add target-sampler C++ mode/fallback and recurrent checkpoint/rollback fixtures, including constrained outputs, EOS and request interruption.
 - Trace shared output head, draft cache, model tensor precision, GDN buffers, paged KV reservation, graph and reconstructed weight scratch without assuming a selected `bpw` implies resident bytes.
 - Do not count the native repository's **sm_120 offline quantizer** kernel optimization as a decode tok/s improvement. Any new CUDA kernel must beat a correct existing runtime under exact, attribution-safe, effective-dispatch controlled conditions on appropriate hardware.
+
+## Additional source audit: native quantized KV dispatch
+
+8. [Native compressed-KV dispatch and bounded prefill staging](08-native-quant-cache-dispatch.md) — precise Qwen fast-path eligibility, distinct decode/prefill kernels, Hadamard-rotated packing, `EXL3_QC_STAGING` allocation trade-off, fail-closed fallback and no-benchmark implementation constraints. This is a pinned-source trace, **not** a Zephyrus performance claim.
