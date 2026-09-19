@@ -5,15 +5,23 @@ on:
     paths:
       - 'tools/spec_math.py'
       - 'tools/static_memory_budget.py'
+      - 'tools/safetensors_header_audit.py'
+      - 'tools/model_residency_plan.py'
       - 'tests/test_spec_math.py'
       - 'tests/test_static_memory_budget.py'
+      - 'tests/test_safetensors_header_audit.py'
+      - 'tests/test_model_residency_plan.py'
       - '.github/workflows/spec-math.yml'
   pull_request:
     paths:
       - 'tools/spec_math.py'
       - 'tools/static_memory_budget.py'
+      - 'tools/safetensors_header_audit.py'
+      - 'tools/model_residency_plan.py'
       - 'tests/test_spec_math.py'
       - 'tests/test_static_memory_budget.py'
+      - 'tests/test_safetensors_header_audit.py'
+      - 'tests/test_model_residency_plan.py'
       - '.github/workflows/spec-math.yml'
 permissions:
   contents: read

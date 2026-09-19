@@ -2,9 +2,9 @@
 
 **Research-first, reproducible, hardware-specific LLM inference for the NVIDIA RTX 5080 Laptop GPU (16 GB).** Optimize usable model quality, response latency, sustained throughput and practical context, not a peak token/s claim. Qwen3.8-27B is the provisional model, not a permanent dependency.
 
-> **Status · 2026-09-19:** extensive source analysis and source-independent, CPU-only speculative math checks. No Zephyrus GPU result or custom Blackwell kernel is claimed. The original linked X article was not directly retrievable; the author's own GitHub-hosted article, runbook, code and subsequent fixes are the research sources.
+> **Status · 2026-09-19:** complete 3,080-tensor header inventory for a pinned public mixed EXL3 checkpoint, executable metadata-only residency planner, source audits and CPU-only correctness tests. No Zephyrus GPU result or custom Blackwell kernel is claimed. The original linked X article was not directly retrievable; the author's own GitHub-hosted article, runbook, code and subsequent fixes are the research sources.
 
-[Six-part reverse-engineering index](docs/reverse-engineering/README.md) · [CPU speculative-math CI](https://github.com/analienx/zephyrus-local-ai/actions/workflows/spec-math.yml) · [Architecture](docs/architecture.md) · [Benchmark/quality protocol](docs/benchmark-protocol.md) · [Research issues](https://github.com/analienx/zephyrus-local-ai/issues)
+[Source-level reverse-engineering index](docs/reverse-engineering/README.md) · [CPU speculative-math CI](https://github.com/analienx/zephyrus-local-ai/actions/workflows/spec-math.yml) · [Architecture](docs/architecture.md) · [Benchmark/quality protocol](docs/benchmark-protocol.md) · [Research issues](https://github.com/analienx/zephyrus-local-ai/issues)
 
 ## Why this project exists
 
