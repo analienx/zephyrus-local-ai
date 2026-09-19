@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "name": "local-ai-coding-agent-smoke-v1",
+  "cases": [
+    {
+      "id": "tool-file-lookup",
+      "kind": "tool_call",
+      "critical": true,
+      "prompt": "You need to inspect an existing file first. Respond with ONLY JSON {\"name\":\"file_search\",\"arguments\":{\"filename\":\"src/parse.py\"}}.",
+      "tool": {
+        "name": "file_search",
+        "arguments": {
+          "filename": "src/parse.py"
+        }
+      }
+    },
+    {
+      "id": "json-plan",
+      "kind": "json_contract",
+      "critical": true,
+      "prompt": "Return ONLY JSON with keys steps (array) and risk (string). Plan: read code, patch code, run tests. risk is low.",
+      "expected": {
+        "steps": [
+          "read code",
+          "patch code",
+          "run tests"
+        ],
+        "risk": "low"
+      }
+    },
+    {
+      "id": "retrieval-exact",
+      "kind": "exact",
+      "critical": true,
+      "prompt": "The API timeout in this synthetic specification is 17 seconds. Answer ONLY the configured timeout as an integer.",
+      "expected": "17"
+    },
+    {
+      "id": "python-parse",
+      "kind": "python_syntax",
+      "critical": false,
+      "prompt": "Implement Python function parse_count(text: str) -> int that parses a nonnegative decimal integer, rejects other strings. Return source code only.",
+      "function": "parse_count",
+      "test_source": "import unittest\nfrom solution import parse_count\nclass ParseTests(unittest.TestCase):\n    def test_zero(self): self.assertEqual(parse_count(\"0\"), 0)\n    def test_decimal(self): self.assertEqual(parse_count(\"123\"), 123)\n    def test_reject_negative(self):\n        with self.assertRaises(ValueError): parse_count(\"-2\")\n    def test_reject_noninteger(self):\n        with self.assertRaises(ValueError): parse_count(\"1.5\")\n"
+    }
+  ]
+}

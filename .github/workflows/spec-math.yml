@@ -3,6 +3,12 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'bench/**'
+      - 'tests/test_campaign.py'
+      - 'tests/test_fitness.py'
+      - 'tests/test_collector.py'
+      - 'tests/test_code_judge.py'
+      - 'tests/test_telemetry.py'
       - 'tools/spec_math.py'
       - 'tools/static_memory_budget.py'
       - 'tools/serving_preflight.py'
@@ -21,6 +27,12 @@ on:
       - '.github/workflows/spec-math.yml'
   pull_request:
     paths:
+      - 'bench/**'
+      - 'tests/test_campaign.py'
+      - 'tests/test_fitness.py'
+      - 'tests/test_collector.py'
+      - 'tests/test_code_judge.py'
+      - 'tests/test_telemetry.py'
       - 'tools/spec_math.py'
       - 'tools/static_memory_budget.py'
       - 'tools/serving_preflight.py'
@@ -49,3 +61,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -v
+      - run: python -m bench.fitness --suite bench/fixtures/smoke-suite.json --records bench/fixtures/simulated-trials.jsonl --arm-a A --arm-b B --output .local/benchmark/simulated-report.json
+      - run: python -m bench.collector --suite bench/fixtures/smoke-suite.json

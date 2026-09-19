@@ -41,10 +41,14 @@ For exact p/q verification, a draft token d from distribution q must be accepted
 
 Public `results/` holds only explicitly sanitized fixture manifest, source/revision hashes, numeric summaries, hardware SKU and aggregate correctness metrics. Ignore raw prompts, profiler traces, memory dumps, personal file paths, large binary/model weights, local client tokens and logit dumps with sensitive data. GitHub Actions may run low-cost CPU schema and math tests and documentation checks, but its host does not have our 16 GB mobile GPU; actual performance labels require locally captured receipts. Keep cloud jobs manual or narrowly scoped when appropriate, avoiding expensive unbounded matrices.
 
-## Initial execution order
+## Final-stage execution order (only after the pre-GPU implementation and explicit authorization)
 
 1. Hardware inventory and free-VRAM receipt; test clean CUDA backend ops, validate engine actually uses sm_120 paths.
 2. Match model/checksum and quality harness; stock no-MTP baseline in an in-VRAM profile.
 3. MTP off/on and k/cache quant A/B with memory and correctness receipts.
 4. 3.0 vs 3.5 bpw EXL3, practical GGUF IQ3/IQ4 and a 2-bit candidate on *the same task suite*; compare speed versus quality/context.
 5. Only after bottleneck attribution, microbenchmark one promising upstream/Blackwell kernel intervention, test exactness and full workload regression.
+
+## Implemented evaluation tool and current boundary
+
+[bench/README.md](../bench/README.md) documents the current transport-neutral trial format, offline deterministic judges, A/B/B/A schedule, loopback-only future SSE collector and optional final-stage code/GPU-telemetry receipts. The bundled four synthetic smoke fixtures are **harness validation only**, not the eventual coding-agent task suite or measured model comparison. Before the final stage prepare a disposable project with real code-edit and tool-loop tests, verify tokenizer/template hashes and require model/engine dispatch receipts. The collector is dry-run by default and rejects live execution without separate final-stage authorization.

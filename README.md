@@ -31,6 +31,10 @@ From the actual native cache representation, 6/5-bit K/V across 16 target attent
 
 Native ExLlamaV3 already provides direct EXL3 GEMM through **144 activation rows**, while the audited GGUF EXL3 port reconstructs fp16 weights above 16 rows. Native also reconstructs beyond 144 rows by default with output slicing and optional high-row transform fusion. Inspect existing native CUDA tiling and SM120 dispatch before attempting a new Blackwell kernel; don't mistake faster offline EXL3 quantization for faster inference.
 
+## Executable local-AI fitness harness (research-only)
+
+The [offline fitness evaluator, balanced A/B/B/A campaign planner, guarded local API streaming collector, optional whole-GPU telemetry and container-only code behavioral-test grader](bench/README.md) turn configuration research into a repeatable **quality × task-completion-time × context × memory** workflow. The included fast-but-wrong candidate is SIMULATED and explicitly fails its tool-call quality gate; none of its numbers are Zephyrus measurements. The live collector refuses execution until separately authorized final-stage validation and an armed static profile. **No live model or GPU benchmark has been run.**
+
 ## Architecture and execution gates
 
 Keep the OpenAI-compatible localhost API layer thin and keep source/model revisions and format candidates pinned; preserve attribution and compatible licenses. Do not publish model weights, credentials, private prompts, machine identifiers or raw workstation logs. Candidate lanes are native ExLlamaV3 EXL3, upstream llama.cpp low-bit GGUF and a demonstrably correct SM120-capable build of Jake's newer GGUF EXL3. A different model can replace Qwen3.8-27B when reproducible quality-adjusted throughput supports it.
