@@ -29,3 +29,6 @@
 ## Additional source audit: native quantized KV dispatch
 
 8. [Native compressed-KV dispatch and bounded prefill staging](08-native-quant-cache-dispatch.md) — precise Qwen fast-path eligibility, distinct decode/prefill kernels, Hadamard-rotated packing, `EXL3_QC_STAGING` allocation trade-off, fail-closed fallback and no-benchmark implementation constraints. This is a pinned-source trace, **not** a Zephyrus performance claim.
+
+9. [Actual Qwen3.8 recurrent-state allocation and optional ingredient replay](09-qwen38-recurrent-memory-and-replay.md) — official 48-value-head geometry, exact native FP32 snapshot/conv memory, speculative depth and safe replay-state transaction.
+10. [Blackwell EXL3 direct kernel dispatch](10-blackwell-exl3-kernel-dispatch.md) — native 3-bpw small-m GEMV eligibility, conditional SM120 shape envelope, general GEMM fallback and reconstructed-prefill scratch.
